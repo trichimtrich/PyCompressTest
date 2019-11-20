@@ -118,8 +118,8 @@ def run_single_test(method, data):
     c_data, c_time = measure_func(compress_func, [data, *compress_args], compress_kargs)
 
     ratio = len(c_data) / len(data) * 100
-    c_time = c_time * 1000 # ms
-    print(">>> Compression: time {0:.3f} ms -- ratio {1:.2f}".format(c_time, ratio))
+    # c_time = c_time * 1000 # ms
+    # print(">>> Compression: time {0:.3f} ms -- ratio {1:.2f}".format(c_time, ratio))
 
 
     decompress_func = method["decompress"]["func"]
@@ -127,8 +127,10 @@ def run_single_test(method, data):
     decompress_kargs = method["decompress"].get("kargs", {}) # type: dict
     dc_data, dc_time = measure_func(decompress_func, [c_data, *decompress_args], decompress_kargs)
 
-    dc_time = dc_time * 1000 # ms
-    print(">>> Decompression: time {0:.3f} ms".format(dc_time))
+    # dc_time = dc_time * 1000 # ms
+    # print(">>> Decompression: time {0:.3f} ms".format(dc_time))
+
+    return ratio, c_time, dc_time
 
 
 
@@ -139,9 +141,11 @@ def main():
 
     test_methods = init_test()
     for name, method in test_methods.items():
-        print("[+] " + name)
-        run_single_test(method, data1)
-        # break
+        ratio, c_time, dc_time = run_single_test(method, data1)
+        c_mbs = len(data) / c_time / 1024 / 1024
+        dc_mbs = len(data) / dc_time / 1024 / 1024
+        print("[+] {0}: ratio {1:.2f}% , compress speed {2:.2f} MB/s , decompress speed {3:.2f} MB/s".format(name, ratio, c_mbs, dc_mbs))
+        break
 
 
 if __name__ == "__main__":
