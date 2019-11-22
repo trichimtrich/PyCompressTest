@@ -1,7 +1,11 @@
 brotli
+
 lz4
 py-lz4framed
+
 python-lzo
 pyquicklz
 zstandard
 zstd
+
+Cython

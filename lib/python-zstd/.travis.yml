@@ -1,0 +1,50 @@
+os: linux
+dist: xenial
+language: python
+matrix:
+  include:
+    - name: "Python 2.6 Trusty"
+      python: 2.6
+      dist: trusty
+    - name: "Python 2.7 Xenial"
+      python: 2.7
+      dist: xenial
+    - name: "Python 3.2 Trusty"
+      python: 3.2
+      dist: trusty
+    - name: "Python 3.3 Trusty"
+      python: 3.3
+      dist: trusty
+    - name: "Python 3.4 Xenial"
+      python: 3.4
+      dist: xenial
+    - name: "Python 3.5 Xenial"
+      python: 3.5
+      dist: xenial
+    - name: "Python 3.6 Xenial"
+      python: 3.6
+      dist: xenial
+    - name: "Python 3.7 Xenial"
+      python: 3.7
+      dist: xenial
+
+addons:
+  apt:
+    sources:
+    - trusty
+    - deadsnakes
+    - sourceline: 'ppa:sergey-dryabzhinsky/packages'
+
+install:
+- sudo apt-get update -qq
+- sudo apt-get install -qq libzstd-dev
+
+script:
+- python setup.py test
+- python setup.py clean -a
+- env PYZSTD_LEGACY=1 python setup.py --pyzstd-legacy test
+- python setup.py clean -a
+- env LEGACY=1 PYZSTD_LEGACY=1 python setup.py --legacy --pyzstd-legacy test
+- python setup.py clean -a
+- python setup.py --external test
+- python setup.py clean -a

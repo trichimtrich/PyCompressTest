@@ -9,8 +9,12 @@
 
 Note:
 - Check only for single file compression
-- Check only for frame, not stream mode, which maybe different a bit in production
+- Check only for frame, not stream mode
+- Check algorithms supporting stream mode
 - Memory leakage might exists, separated library call is a good approach
+- No threading involved
+- No dictionary involed
+- Some wrapper libraries don't provide level/quality selection
 
 Manual:
 - pyqlz
@@ -19,38 +23,9 @@ s/malloc.h/stdlib.h/
 
 """
 
-# https://github.com/google/brotli/tree/master/python
-import brotli
-
 # - density
-
-# https://pypi.org/project/lz4/
-import lz4.frame
-
-# https://pypi.org/project/py-lz4framed/
-import lz4framed
-
-# https://pypi.org/project/python-lzo/
-import lzo
-
 # - pithy
-
-# TODO: check which version
-# https://pypi.org/project/pyquicklz/#files
-# https://github.com/robottwo/quicklz
-# https://github.com/sergey-dryabzhinsky/python-quicklz
-import quicklz
-
-# https://pypi.org/project/pyqlz/
-import pyqlz
-
 # - snappy
-
-# builtins
-import lzma
-import bz2
-import zlib
-# - zlib-ng
 
 # https://pypi.org/project/zstandard/
 import zstandard
@@ -58,113 +33,13 @@ import zstandard
 # https://pypi.org/project/zstd/
 import zstd
 
-
 import timeit
 
 
 def init_test():
     test_methods = {}
 
-    """ brotli
-
-        brotli.compress(data, quality=...)
-            quality: 0 - 11
-        
-        brotli.decompress(data)
-    """
-    for quality in range(0, 11 + 1):
-        test_methods["brotli-{}".format(quality)] = {
-            "compress": {
-                "func": brotli.compress,
-                "kargs": {"quality": quality},
-            },
-            "decompress": {
-                "func": brotli.decompress,
-            },
-        }
-
-
-    """ lz4
-
-        lz4.frame.compress(data, level=...)
-            level in:
-                lz4.frame.COMPRESSIONLEVEL_MIN: 0
-                lz4.frame.COMPRESSIONLEVEL_MAX: 16
-
-                lz4.frame.COMPRESSIONLEVEL_MINHC: 3
-        
-        lz4.frame.decompress(data)
-    """
-    for level in range(lz4.frame.COMPRESSIONLEVEL_MIN, lz4.frame.COMPRESSIONLEVEL_MAX + 1):
-        test_methods["lz4-{}".format(level)] = {
-            "compress": {
-                "func": lz4.frame.compress,
-                "kargs": {"compression_level": level},
-            },
-            "decompress": {
-                "func": lz4.frame.decompress,
-            },
-        }
-
-
-    """ py-lz4framed
-
-        lz4framed.compress(data, level=...)
-            level in:
-                lz4framed.LZ4F_COMPRESSION_MIN: 0
-                lz4framed.LZ4F_COMPRESSION_MAX: 12
-
-                lz4framed.LZ4F_COMPRESSION_MIN_HC: 3
-
-        lz4framed.decompress(data)
-    """
-    for level in range(lz4framed.LZ4F_COMPRESSION_MIN, lz4framed.LZ4F_COMPRESSION_MAX + 1):
-        test_methods["py-lz4framed-{}".format(level)] = {
-            "compress": {
-                "func": lz4framed.compress,
-                "kargs": {"level": level},
-            },
-            "decompress": {
-                "func": lz4framed.decompress,
-            },
-        }
-
-
-    """ python-lzo
     
-        lzo.compress(data, level)
-            level: 1 - 9
-
-        lzo.decompress(data)
-    """
-    for level in range(1, 9 + 1):
-        test_methods["python-lzo-{}".format(level)] = {
-            "compress": {
-                "func": lzo.compress,
-                "args": [level],
-            },
-            "decompress": {
-                "func": lzo.decompress,
-            },
-        }
-
-
-    """ pyqlz
-
-        pyqlz.compress(data)
-
-        pyqlz.decompress(data)
-    """
-    test_methods["pyqlz"] = {
-        "compress": {
-            "func": pyqlz.compress,
-        },
-        "decompress": {
-            "func": pyqlz.decompress,
-        },
-    }
-
-
     """ zstandard
 
         zstandard.compress(data)
@@ -227,7 +102,7 @@ def main():
     data1 = open("com_data1.json", "rb").read()
     # data2 = open("com_data2.exe", "rb").read()
     # data3 = open("com_data3.bin", "rb").read()
-    data3 = open("mft.bin", "rb").read()
+    # data3 = open("mft.bin", "rb").read()
 
     test_methods = init_test()
     data = data1
