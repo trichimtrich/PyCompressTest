@@ -27,52 +27,8 @@ s/malloc.h/stdlib.h/
 # - pithy
 # - snappy
 
-# https://pypi.org/project/zstandard/
-import zstandard
-
-# https://pypi.org/project/zstd/
-import zstd
-
 import timeit
-
-
-def init_test():
-    test_methods = {}
-
-    
-    """ zstandard
-
-        zstandard.compress(data)
-
-        zstandard.decompress(data)
-    """
-    test_methods["zstandard"] = {
-        "compress": {
-            "func": zstandard.compress,
-        },
-        "decompress": {
-            "func": zstandard.decompress,
-        },
-    }
-
-
-    """ zstd
-
-        zstd.compress(data)
-
-        zstd.decompress(data)
-    """
-    test_methods["zstd"] = {
-        "compress": {
-            "func": zstd.compress,
-        },
-        "decompress": {
-            "func": zstd.decompress,
-        },
-    }
-
-    return test_methods
-
+import methods
 
 def measure_func(func, args, kargs):
     t0 = timeit.default_timer()
@@ -104,10 +60,11 @@ def main():
     # data3 = open("com_data3.bin", "rb").read()
     # data3 = open("mft.bin", "rb").read()
 
-    test_methods = init_test()
+    test_methods = methods.generate()
     data = data1
 
-    data = b"a" * (10 * 1024 * 1024)
+    # data = b"a" * (10 * 1024 * 1024)
+    data = b"a" * 10
 
     for name, method in test_methods.items():
         ratio, c_time, dc_time = run_single_test(method, data)

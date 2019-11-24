@@ -19,7 +19,7 @@ import bz2
 
 def generate():
     test_methods = {}
-    for level in range(0, 9 + 1):
+    for level in range(1, 9 + 1):
         test_methods["bz2-{}".format(level)] = {
             "compress": {
                 "func": bz2.compress,

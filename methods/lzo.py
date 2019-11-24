@@ -13,12 +13,23 @@
             level: 1 - 9
 
         lzo.decompress(data)
+
+    note:
+        this library doesn't work well on Windows. Ignore!
 """
 
-import lzo
+try:
+    import lzo
+except:
+    pass
+import os
 
 def generate():
     test_methods = {}
+
+    if os.name == "nt":
+        return test_methods
+
     for level in range(1, 9 + 1):
         test_methods["python-lzo-{}".format(level)] = {
             "compress": {

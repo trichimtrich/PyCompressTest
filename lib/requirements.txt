@@ -4,6 +4,7 @@ brotli
 
 lz4
 py-lz4framed
+lz4tools
 
 pyquicklz
 
