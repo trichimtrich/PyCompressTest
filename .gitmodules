@@ -1,0 +1,9 @@
+[submodule "lib/python-quicklz"]
+	path = lib/python-quicklz
+	url = https://github.com/trichimtrich/python-quicklz
+[submodule "lib/pyqlz"]
+	path = lib/pyqlz
+	url = https://github.com/trichimtrich/pyqlz
+[submodule "lib/python-zstd"]
+	path = lib/python-zstd
+	url = https://github.com/trichimtrich/python-zstd
