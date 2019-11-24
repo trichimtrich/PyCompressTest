@@ -9,4 +9,4 @@ pyquicklz
 
 zstandard
 
-python-lzo
+# python-lzo

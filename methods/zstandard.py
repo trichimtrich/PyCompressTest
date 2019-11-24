@@ -30,8 +30,8 @@ def _decompress(data):
 
 def generate():
     test_methods = {}
-    for level in range(1, ):
-        test_methods["zlib-{}".format(level)] = {
+    for level in range(1, zstandard.MAX_COMPRESSION_LEVEL + 1):
+        test_methods["zstandard-{}".format(level)] = {
             "compress": {
                 "func": _compress,
                 "args": [level],

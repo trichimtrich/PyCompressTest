@@ -7,6 +7,7 @@
     source:
         https://pypi.org/project/pyqlz
         code: lib/pyqlz
+        fix: https://github.com/trichimtrich/pyqlz
 
     methods:
         pyqlz.compress(data)

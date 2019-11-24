@@ -7,6 +7,8 @@
     source:
         https://github.com/sergey-dryabzhinsky/python-quicklz
         code: lib/python-quicklz
+        fix: https://github.com/trichimtrich/python-quicklz
+
 
     methods:
         python_quicklz.compress(data, state)
