@@ -2,3 +2,6 @@
 venv
 lib/*/build
 .vscode
+*.py[oc]
+*.so
+*.egg-info
