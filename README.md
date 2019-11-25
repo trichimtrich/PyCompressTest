@@ -66,4 +66,5 @@ python main.py test_directory/ result2.json
 ## Disclaimer
 
 - Not a bold comparision between algorithms. Only check on Python wrapper level and your specific data
-- No optimization and enhancement done
+- The results are not consistent between small and large test data
+- No optimization and enhancement have made
