@@ -8,7 +8,6 @@ def generate():
         "bz2",
         "lz4",
         "lz4framed",
-        # "lz4tools",
         "lzma",
         "lzo",
         "pyqlz",
