@@ -26,6 +26,10 @@
 
 - Checkout [repo](https://github.com/trichimtrich/python-zstd)
 
+### python-snappy
+
+- Add instruction for Windows
+
 ### Others
 
 In `requirements.txt`

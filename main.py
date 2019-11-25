@@ -1,9 +1,5 @@
 #!/usr/bin/python3
 
-# - density
-# - pithy
-# - snappy
-
 import os
 import sys
 import timeit

@@ -10,6 +10,7 @@ Simple script to test performance of some leading compressed algorithms implemen
 - [lzma](https://en.wikipedia.org/wiki/Lempel%E2%80%93Ziv%E2%80%93Markov_chain_algorithm)
 - [lzo](http://www.oberhumer.com/opensource/lzo/)
 - [quicklz](http://www.quicklz.com/)
+- [snappy](https://github.com/google/snappy)
 - [zstandard](https://facebook.github.io/zstd/)
 - [zlib](https://www.zlib.net/)
 
