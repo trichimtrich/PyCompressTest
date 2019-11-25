@@ -5,3 +5,4 @@ lib/*/build
 *.py[oc]
 *.so
 *.egg-info
+test
