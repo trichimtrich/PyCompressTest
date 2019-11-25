@@ -1,28 +1,5 @@
 #!/usr/bin/python3
 
-""" Benchmark some common compression implemented in Python for your specific usage
-
-- Compression ratio
-- Compression speed
-- Decompression speed
-- memory-profiler / line-profiler / CProfile (?): CPU + Memory + Disk IO
-
-Note:
-- Check only for single file compression
-- Check only for frame, not stream mode
-- Check algorithms supporting stream mode
-- Memory leakage might exists, separated library call is a good approach
-- No threading involved
-- No dictionary involed
-- Some wrapper libraries don't provide level/quality selection
-
-Manual:
-- pyqlz
-https://pypi.org/project/pyqlz/#files
-s/malloc.h/stdlib.h/
-
-"""
-
 # - density
 # - pithy
 # - snappy
