@@ -64,10 +64,6 @@ def run_single_test(method, data_array):
 
         assert len(dc_data) == len(data), "Wtf, decompress bi khung ?"
 
-        ratio = len(c_data) / len(data) * 100
-        c_speed = len(data) / c_time
-        dc_speed = len(data) / dc_time
-
         results[fn] = {
             "size": len(data),
             "compressed_size": len(c_data),
@@ -76,6 +72,9 @@ def run_single_test(method, data_array):
         }
 
         count += 1
+        ratio = len(c_data) / len(data) * 100
+        c_speed = len(data) / c_time
+        dc_speed = len(data) / dc_time
         logging.debug("{:3d}/{:<3d}: ratio {:6.3f}% , compress speed {:7.3f} MB/s , decompress speed {:7.3f} MB/s".format(count, len(data_array), ratio, c_speed / (1024 ** 2), dc_speed / (1024 ** 2)))
 
         len_data += len(data)
@@ -100,7 +99,10 @@ def read_folder_or_file(path):
         for root, folders, files in os.walk(path):
             for f in files:
                 fn = os.path.join(root, f)
-                data_array.append([fn, open(fn, "rb").read()])
+                data = open(fn, "rb").read()
+                if not data:
+                    continue
+                data_array.append([fn, data])
     else:
         data_array.append([path, open(path, "rb").read()])
 
