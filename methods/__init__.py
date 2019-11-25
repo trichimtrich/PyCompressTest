@@ -13,6 +13,7 @@ def generate():
         "pyqlz",
         "pyquicklz",
         "python_quicklz",
+        "snappy",
         "zlib",
         "zstandard",
         "zstd",

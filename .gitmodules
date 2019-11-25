@@ -7,3 +7,6 @@
 [submodule "lib/python-zstd"]
 	path = lib/python-zstd
 	url = https://github.com/trichimtrich/python-zstd
+[submodule "lib/python-snappy"]
+	path = lib/python-snappy
+	url = https://github.com/trichimtrich/python-snappy
