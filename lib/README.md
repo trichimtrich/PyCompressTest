@@ -28,7 +28,8 @@
 
 ### python-snappy
 
-- Add instruction for Windows
+- Add instruction for Windows only
+- *nix uses pypi
 
 ### Others
 
@@ -37,7 +38,7 @@ In `requirements.txt`
 - brotli
 - lz4
 - py-lz4framed
-- lz4tools (not fixed)
+- snappy
 - pyquicklz
 - zstandard
 
@@ -49,7 +50,17 @@ And `builtins`
 
 ## Installation
 
-> Do both
+> Do all
+
+### Pull code & Install 3rd dependencies
+
+```bash
+git submodule update --init --recursive
+
+sudo apt install libsnappy-dev zlib1g-dev liblzo2-dev
+sudo yum install libsnappy-devel epel-release lzo-devel lzo-minilzo
+brew install snappy
+```
 
 ### From Pypi
 

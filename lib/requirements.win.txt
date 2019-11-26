@@ -8,5 +8,3 @@ py-lz4framed
 pyquicklz
 
 zstandard
-
-# python-lzo

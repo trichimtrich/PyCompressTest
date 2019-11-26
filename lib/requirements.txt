@@ -10,3 +10,4 @@ pyquicklz
 zstandard
 
 python-lzo
+python-snappy
