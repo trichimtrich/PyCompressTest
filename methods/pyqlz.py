@@ -15,16 +15,15 @@
         pyqlz.decompress(data)
 """
 
-import pyqlz
-
 def generate():
     test_methods = {}
     test_methods["pyqlz"] = {
+        "preload": "import pyqlz",
         "compress": {
-            "func": pyqlz.compress,
+            "func": "pyqlz.compress",
         },
         "decompress": {
-            "func": pyqlz.decompress,
+            "func": "pyqlz.decompress",
         },
     }
     return test_methods

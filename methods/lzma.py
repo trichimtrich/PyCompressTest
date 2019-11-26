@@ -15,20 +15,19 @@
         lzma.decompress()
 """
 
-import lzma
-
 def generate():
     test_methods = {}
     for preset in range(0, 9 + 1):
         test_methods["lzma-{}".format(preset)] = {
+            "preload": "import lzma",
             "compress": {
-                "func": lzma.compress,
+                "func": "lzma.compress",
                 "kargs": {
                     "preset": preset,
                 },
             },
             "decompress": {
-                "func": lzma.decompress,
+                "func": "lzma.decompress",
             },
         }
     return test_methods

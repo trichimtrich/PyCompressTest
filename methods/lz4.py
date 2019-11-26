@@ -26,12 +26,15 @@ def generate():
     test_methods = {}
     for level in range(lz4.frame.COMPRESSIONLEVEL_MIN, lz4.frame.COMPRESSIONLEVEL_MAX + 1):
         test_methods["lz4-{}".format(level)] = {
+            "preload": "import lz4.frame",
             "compress": {
-                "func": lz4.frame.compress,
-                "kargs": {"compression_level": level},
+                "func": "lz4.frame.compress",
+                "kargs": {
+                    "compression_level": level,
+                },
             },
             "decompress": {
-                "func": lz4.frame.decompress,
+                "func": "lz4.frame.decompress",
             },
         }
     return test_methods

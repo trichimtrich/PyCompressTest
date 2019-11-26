@@ -20,6 +20,9 @@
 
 import zstandard
 
+preload = """
+import zstandard
+
 def _compress(data, level):
     ctx = zstandard.ZstdCompressor(level=level)
     return ctx.compress(data)
@@ -27,17 +30,19 @@ def _compress(data, level):
 def _decompress(data):
     ctx = zstandard.ZstdDecompressor()
     return ctx.decompress(data)
+"""
 
 def generate():
     test_methods = {}
     for level in range(1, zstandard.MAX_COMPRESSION_LEVEL + 1):
         test_methods["zstandard-{}".format(level)] = {
+            "preload": preload,
             "compress": {
-                "func": _compress,
+                "func": "_compress",
                 "args": [level],
             },
             "decompress": {
-                "func": _decompress,
+                "func": "_decompress",
             },
         }
     return test_methods

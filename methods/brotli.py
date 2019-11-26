@@ -15,18 +15,19 @@
         brotli.decompress(data)
 """
 
-import brotli
-
 def generate():
     test_methods = {}
     for quality in range(0, 11 + 1):
         test_methods["brotli-{}".format(quality)] = {
+            "preload": "import brotli",
             "compress": {
-                "func": brotli.compress,
-                "kargs": {"quality": quality},
+                "func": "brotli.compress",
+                "kargs": {
+                    "quality": quality,
+                },
             },
             "decompress": {
-                "func": brotli.decompress,
+                "func": "brotli.decompress",
             },
         }
     return test_methods

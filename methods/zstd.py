@@ -17,18 +17,17 @@
         python_zstd.decompress(data)
 """
 
-import python_zstd
-
 def generate():
     test_methods = {}
     for level in range(1, 22 + 1):
         test_methods["zstd-{}".format(level)] = {
+            "preload": "import python_zstd",
             "compress": {
-                "func": python_zstd.compress,
+                "func": "python_zstd.compress",
                 "args": [level],
             },
             "decompress": {
-                "func": python_zstd.decompress,
+                "func": "python_zstd.decompress",
             },
         }
     return test_methods

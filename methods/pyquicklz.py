@@ -14,16 +14,15 @@
         quicklz.decompress(data)
 """
 
-import quicklz
-
 def generate():
     test_methods = {}
     test_methods["pyquicklz"] = {
+        "preload": "import quicklz",
         "compress": {
-            "func": quicklz.compress,
+            "func": "quicklz.compress",
         },
         "decompress": {
-            "func": quicklz.decompress,
+            "func": "quicklz.decompress",
         },
     }
     return test_methods
