@@ -25,12 +25,15 @@ def generate():
     test_methods = {}
     for level in range(lz4framed.LZ4F_COMPRESSION_MIN, lz4framed.LZ4F_COMPRESSION_MAX + 1):
         test_methods["py-lz4framed-{}".format(level)] = {
+            "preload": "import lz4framed",
             "compress": {
-                "func": lz4framed.compress,
-                "kargs": {"level": level},
+                "func": "lz4framed.compress",
+                "kargs": {
+                    "level": level,
+                },
             },
             "decompress": {
-                "func": lz4framed.decompress,
+                "func": "lz4framed.decompress",
             },
         }
     return test_methods

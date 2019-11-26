@@ -16,18 +16,18 @@
         python_quicklz.decompress(data, state)
 """
 
-import python_quicklz
-
 def generate():
     test_methods = {}
+
     test_methods["python-quicklz"] = {
+        "preload": "import python_quicklz",
         "compress": {
-            "func": python_quicklz.qlz_compress,
-            "args": [python_quicklz.QLZStateCompress()],
+            "func": "python_quicklz.qlz_compress",
+            "args": ["python_quicklz.QLZStateCompress()"],
         },
         "decompress": {
-            "func": python_quicklz.qlz_decompress,
-            "args": [python_quicklz.QLZStateDecompress()]
+            "func": "python_quicklz.qlz_decompress",
+            "args": ["python_quicklz.QLZStateDecompress()"]
         },
     }
     return test_methods

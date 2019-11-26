@@ -15,16 +15,15 @@
         snappy.decompress(data)
 """
 
-import snappy
-
 def generate():
     test_methods = {}
     test_methods["python-snappy"] = {
+        "preload": "import snappy",
         "compress": {
-            "func": snappy.compress,
+            "func": "snappy.compress",
         },
         "decompress": {
-            "func": snappy.decompress,
+            "func": "snappy.decompress",
         },
     }
     return test_methods

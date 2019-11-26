@@ -23,14 +23,15 @@ def generate():
     test_methods = {}
     for level in range(zlib.Z_BEST_SPEED, zlib.Z_BEST_COMPRESSION + 1):
         test_methods["zlib-{}".format(level)] = {
+            "preload": "import zlib",
             "compress": {
-                "func": zlib.compress,
+                "func": "zlib.compress",
                 "kargs": {
                     "level": level,
                 }
             },
             "decompress": {
-                "func": zlib.decompress,
+                "func": "zlib.decompress",
             },
         }
     return test_methods

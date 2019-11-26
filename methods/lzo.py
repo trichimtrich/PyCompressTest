@@ -18,10 +18,6 @@
         this library doesn't work well on Windows. Ignore!
 """
 
-try:
-    import lzo
-except:
-    pass
 import os
 
 def generate():
@@ -32,12 +28,13 @@ def generate():
 
     for level in range(1, 9 + 1):
         test_methods["python-lzo-{}".format(level)] = {
+            "preload": "import lzo",
             "compress": {
-                "func": lzo.compress,
+                "func": "lzo.compress",
                 "args": [level],
             },
             "decompress": {
-                "func": lzo.decompress,
+                "func": "lzo.decompress",
             },
         }
     return test_methods
