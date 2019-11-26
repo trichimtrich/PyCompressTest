@@ -19,9 +19,10 @@ Simple script to test performance of some leading compressed algorithms implemen
 - Compression ratio
 - Compression speed
 - Decompression speed
-- CPU + Memory + Disk IO: Memory-profiler / Line-profiler / CProfile (?)
+- Memory usage during compressing/decompressing
+- Memory leakage ?
 
-> ?: Not available
+> ?: Manual by generating chart
 
 ## Scenarios
 
@@ -48,7 +49,6 @@ Simple script to test performance of some leading compressed algorithms implemen
 - Check only for single file compression
 - Check only for frame, not stream mode
 - Haven't checked if algorithms/libs support stream mode
-- Memory leakage might exists, separated lib call is a good approach
 - No threading involved
 - No dictionary involed
 - Some wrapper libraries don't provide level/quality selection
