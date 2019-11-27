@@ -176,17 +176,21 @@ def run_test(method, path):
 
     os.remove(tmp_fn)
 
+    mem_dict = {
+        "?": {
+            "start_process": start_process,
+            "end_process": end_process,
+            "mem_usage": mem_usage,
+            "interval": interval,
+        }
+    }
+
     if stdout.startswith(b"{"):
         test_result = json.loads(stdout)
         if isinstance(test_result, dict) and "*" in test_result:
-            test_result["*"].update({
-                "start_process": start_process,
-                "end_process": end_process,
-                "mem_usage": mem_usage,
-                "interval": interval,
-            })
+            test_result.update(mem_dict)
             return test_result
-    return {}
+    return mem_dict
 
 
 
@@ -210,11 +214,14 @@ def main():
         test_result = run_test(method, path)
         results[name] = test_result
 
-        ratio = test_result["*"]["compressed_size"] / test_result["*"]["size"] * 100
-        c_speed = test_result["*"]["size"] / test_result["*"]["compressed_time"]
-        dc_speed = test_result["*"]["size"] / test_result["*"]["decompressed_time"]
+        if "*" in test_result:
+            ratio = test_result["*"]["compressed_size"] / test_result["*"]["size"] * 100
+            c_speed = test_result["*"]["size"] / test_result["*"]["compressed_time"]
+            dc_speed = test_result["*"]["size"] / test_result["*"]["decompressed_time"]
 
-        logging.info(">>> SUM: ratio {:6.3f}% , compress speed {:7.3f} MB/s , decompress speed {:7.3f} MB/s".format(ratio, c_speed / (1024 ** 2), dc_speed / (1024 ** 2)))
+            logging.info(">>> SUM: ratio {:6.3f}% , compress speed {:7.3f} MB/s , decompress speed {:7.3f} MB/s".format(ratio, c_speed / (1024 ** 2), dc_speed / (1024 ** 2)))
+        else:
+            logging.error("Uknown")
 
     json_path = sys.argv[2]
     with open(json_path, "w") as f:
