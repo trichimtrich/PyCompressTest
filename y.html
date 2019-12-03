@@ -1,0 +1,297 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.js"></script>
+<script src="https://code.highcharts.com/highcharts.js"></script>
+
+<div id="ratio-compression-chart" class="embed-responsive-item panel-body"></div>
+
+<div id="ratio-decompression-chart" class="embed-responsive-item panel-body"></div>
+
+<div id="compression-decompression-chart" class="embed-responsive-item panel-body"></div>
+
+<script>
+
+    document.addEventListener("DOMContentLoaded", function () {
+
+        function decimalAdjust(type, value, exp) {
+            if (typeof exp === "undefined" || +exp === 0) {
+                return Math[type](value);
+            }
+            value = +value;
+            exp = +exp;
+            if (isNaN(value) || !(typeof exp === "number" && exp % 1 === 0)) {
+                return NaN;
+            }
+            value = value.toString().split("e");
+            value = Math[type](+(value[0] + "e" + (value[1] ? (+value[1] - exp) : -exp)));
+            value = value.toString().split("e");
+            return +(value[0] + "e" + (value[1] ? (+value[1] + exp) : exp));
+        }
+
+        if (!Math.round10) {
+            Math.round10 = function (value, exp) {
+                return decimalAdjust("round", value, exp);
+            };
+        }
+        if (!Math.floor10) {
+            Math.floor10 = function (value, exp) {
+                return decimalAdjust("floor", value, exp);
+            };
+        }
+        if (!Math.ceil10) {
+            Math.ceil10 = function (value, exp) {
+                return decimalAdjust("ceil", value, exp);
+            };
+        }
+
+        var colors = d3.scale.category20().range()
+            .concat(d3.scale.category20b().range(),
+                d3.scale.category20c().range());
+
+        function formatSize(size, precision) {
+            if (precision == undefined)
+                precision = -2;
+
+            if (size < 1024) {
+                return size + " B";
+            } else if (size < (1024 * 1024)) {
+                return Math.round10(size / 1024, precision) + " KiB";
+            } else if (size < (1024 * 1024 * 1024)) {
+                return Math.round10(size / (1024 * 1024), precision) + " MiB";
+            } else if (size < (1024 * 1024 * 1024 * 1024)) {
+                return Math.round10(size / (1024 * 1024 * 1024), precision) + " GiB";
+            } else {
+                return Math.round10(size / (1024 * 1024 * 1024 * 1024), precision) + " TiB";
+            }
+        }
+
+        function formatSpeed(speed, precision) {
+            return formatSize(speed, precision) + "/s";
+        }
+
+
+        function drawRatioCompressionChart(xAxis, yAxis) {
+            if (xAxis == undefined)
+                xAxis = "logarithmic"; // linear
+            if (yAxis == undefined)
+                yAxis = "linear";
+
+
+            var chart = $("#ratio-compression-chart").highcharts({
+                chart: { type: "scatter" },
+                title: { text: null },
+                xAxis: {
+                    title: {
+                        enabled: true,
+                        text: "Compression Speed"
+                    },
+                    startOnTick: true,
+                    endOnTick: true,
+                    min: (xAxis == "logarithmic") ? undefined : 0,
+                    labels: {
+                        rotation: -45,
+                        formatter: function () { return formatSpeed(this.value); }
+                    },
+                    type: xAxis
+                },
+                yAxis: {
+                    title: {
+                        text: "Ratio"
+                    },
+                    type: yAxis
+                },
+                legend: {
+                    layout: "vertical",
+                    align: "right",
+                    verticalAlign: "top"
+                },
+                plotOptions: {
+                    scatter: {
+                        tooltip: {
+                            headerFormat: "<b>{series.name}</b>",
+                            pointFormatter: function () {
+                                res = ":<b>" + this.codec + "</b><hr/><br/>";
+                                if (this.level != "")
+                                    res += "Level: " + this.level + "<br/>";
+                                res += "Ratio: " + Math.round10(this.y, -2) + "<br/>";
+                                res += "Compression speed: " + formatSpeed(this.x) + "<br/>";
+                                res += "Decompression speed: " + formatSpeed(this.z) + "<br/>";
+                                return res;
+                            }
+                        }
+                    }
+                },
+
+                series: chartKeys.map(function (key, i) {
+                    return {
+                        visible: true,
+                        name: key,
+                        color: colors[i % colors.length],
+                        data: chartData[key].map(function (p) {
+                            return {
+                                x: p.compression_rate,
+                                y: p.ratio,
+                                z: p.decompression_rate,
+                                codec: p.codec,
+                                level: p.level,
+                            }
+                        })
+                    }
+                })
+            }).highcharts();
+        }
+
+        function drawRatioDecompressionChart(xAxis, yAxis) {
+            if (xAxis == undefined)
+                xAxis = "logarithmic"; // linear
+            if (yAxis == undefined)
+                yAxis = "linear";
+
+            var chart = $("#ratio-decompression-chart").highcharts({
+                chart: { type: "scatter" },
+                title: { text: null },
+                xAxis: {
+                    title: {
+                        enabled: true,
+                        text: "Decompression Speed"
+                    },
+                    startOnTick: true,
+                    endOnTick: true,
+                    min: (xAxis == "logarithmic") ? undefined : 0,
+                    labels: {
+                        rotation: -45,
+                        formatter: function () { return formatSpeed(this.value); }
+                    },
+                    type: xAxis
+                },
+                yAxis: {
+                    title: {
+                        text: "Ratio"
+                    },
+                    type: yAxis
+                },
+                legend: {
+                    layout: "vertical",
+                    align: "right",
+                    verticalAlign: "top"
+                },
+                plotOptions: {
+                    scatter: {
+                        tooltip: {
+                            headerFormat: "<b>{series.name}</b>",
+                            pointFormatter: function () {
+                                res = ":<b>" + this.codec + "</b><hr/><br/>";
+                                if (this.level != "")
+                                    res += "Level: " + this.level + "<br/>";
+                                res += "Ratio: " + Math.round10(this.y, -2) + "<br/>";
+                                res += "Compression speed: " + formatSpeed(this.z) + "<br/>";
+                                res += "Decompression speed: " + formatSpeed(this.x) + "<br/>";
+                                return res;
+                            }
+                        }
+                    }
+                },
+                series: chartKeys.map(function (key, i) {
+                    return {
+                        visible: true,
+                        name: key,
+                        color: colors[i % colors.length],
+                        data: chartData[key].map(function (p) {
+                            return {
+                                z: p.compression_rate,
+                                y: p.ratio,
+                                x: p.decompression_rate,
+                                codec: p.codec,
+                                level: p.level,
+                            }
+                        })
+                    }
+                })
+            }).highcharts();
+        }
+
+        function drawCompressionDecompressionChart(xAxis, yAxis) {
+            if (xAxis == undefined)
+                xAxis = "logarithmic"; // linear
+            if (yAxis == undefined)
+                xAxis = "logarithmic"; // linear
+
+            // yAxis = $scope.speedScale;
+
+            var chart = $("#compression-decompression-chart").highcharts({
+                chart: { type: "scatter" },
+                title: { text: null },
+                xAxis: {
+                    title: {
+                        enabled: true,
+                        text: "Decompression Speed"
+                    },
+                    endOnTick: true,
+                    min: (xAxis == "logarithmic") ? undefined : 0,
+                    labels: {
+                        rotation: -45,
+                        formatter: function () { return formatSpeed(this.value); }
+                    },
+                    type: xAxis
+                },
+                yAxis: {
+                    title: {
+                        text: "Compression Speed"
+                    },
+                    startOnTick: true,
+                    endOnTick: true,
+                    min: (yAxis == "logarithmic") ? undefined : 0,
+                    labels: {
+                        formatter: function () { return formatSpeed(this.value); }
+                    },
+                    type: yAxis
+                },
+                legend: {
+                    layout: "vertical",
+                    align: "right",
+                    verticalAlign: "top"
+                },
+                plotOptions: {
+                    scatter: {
+                        tooltip: {
+                            headerFormat: "<b>{series.name}</b>",
+                            pointFormatter: function () {
+                                res = ":<b>" + this.codec + "</b><hr/><br/>";
+                                if (this.level != "")
+                                    res += "Level: " + this.level + "<br/>";
+                                res += "Ratio: " + Math.round10(this.z, -2) + "<br/>";
+                                res += "Compression speed: " + formatSpeed(this.y) + "<br/>";
+                                res += "Decompression speed: " + formatSpeed(this.x) + "<br/>";
+                                return res;
+                            }
+                        }
+                    }
+                },
+                series: chartKeys.map(function (key, i) {
+                    return {
+                        visible: true,
+                        name: key,
+                        color: colors[i % colors.length],
+                        data: chartData[key].map(function (p) {
+                            return {
+                                y: p.compression_rate,
+                                z: p.ratio,
+                                x: p.decompression_rate,
+                                codec: p.codec,
+                                level: p.level,
+                            }
+                        })
+                    }
+                })
+            }).highcharts();
+        }
+
+        chartKeys = JSON.parse(`["brotli", "bz2", "lz4", "py-lz4framed", "lzma", "python-lzo", "pyqlz", "pyquicklz", "python-quicklz", "python-snappy", "zlib", "zstandard", "zstd"]`);
+        chartData = JSON.parse(`{"brotli": [{"codec": "brotli-0", "level": "0", "compression_rate": 212911180.4876435, "decompression_rate": 184804059.99406317, "ratio": 2.702264540756657}, {"codec": "brotli-1", "level": "1", "compression_rate": 152968704.63003927, "decompression_rate": 187998052.7057912, "ratio": 2.883670251638854}, {"codec": "brotli-2", "level": "2", "compression_rate": 84170108.53996988, "decompression_rate": 193912802.69861627, "ratio": 3.114096146489032}, {"codec": "brotli-3", "level": "3", "compression_rate": 70186284.30717058, "decompression_rate": 198217602.905345, "ratio": 3.145795937762946}, {"codec": "brotli-4", "level": "4", "compression_rate": 26465236.00791153, "decompression_rate": 201172421.91549534, "ratio": 3.3015092879498096}, {"codec": "brotli-5", "level": "5", "compression_rate": 18115743.883878686, "decompression_rate": 181001369.2771647, "ratio": 3.558040802131955}, {"codec": "brotli-6", "level": "6", "compression_rate": 11788882.333264297, "decompression_rate": 204988728.08485216, "ratio": 3.624770516163271}, {"codec": "brotli-7", "level": "7", "compression_rate": 7364726.343575788, "decompression_rate": 201848659.17083123, "ratio": 3.674653486697486}, {"codec": "brotli-8", "level": "8", "compression_rate": 4573983.472488658, "decompression_rate": 203257732.02260146, "ratio": 3.7092561575947762}, {"codec": "brotli-9", "level": "9", "compression_rate": 3076497.5145638115, "decompression_rate": 187270387.70416078, "ratio": 3.7382483010789898}, {"codec": "brotli-10", "level": "10", "compression_rate": 801326.1525284788, "decompression_rate": 181382162.14591712, "ratio": 4.090729603430826}, {"codec": "brotli-11", "level": "11", "compression_rate": 419200.2238641955, "decompression_rate": 175268844.07290158, "ratio": 4.204453531486717}], "bz2": [{"codec": "bz2-1", "level": "1", "compression_rate": 11738701.092205366, "decompression_rate": 35172596.923932314, "ratio": 3.5041444205175933}, {"codec": "bz2-2", "level": "2", "compression_rate": 11493962.3815539, "decompression_rate": 30118637.984148122, "ratio": 3.647940736164259}, {"codec": "bz2-3", "level": "3", "compression_rate": 11088914.160489665, "decompression_rate": 26480799.622008447, "ratio": 3.7188572764483108}, {"codec": "bz2-4", "level": "4", "compression_rate": 9768586.582598604, "decompression_rate": 24299728.84976683, "ratio": 3.7669034550275695}, {"codec": "bz2-5", "level": "5", "compression_rate": 10101586.652165854, "decompression_rate": 22036000.265469395, "ratio": 3.803496116916119}, {"codec": "bz2-6", "level": "6", "compression_rate": 8507643.940772293, "decompression_rate": 18319856.813104715, "ratio": 3.826984959980771}, {"codec": "bz2-7", "level": "7", "compression_rate": 8997594.988626627, "decompression_rate": 25919040.367463388, "ratio": 3.851477301876563}, {"codec": "bz2-8", "level": "8", "compression_rate": 11130078.554116836, "decompression_rate": 27538013.615734436, "ratio": 3.877108260592724}, {"codec": "bz2-9", "level": "9", "compression_rate": 11601754.926824244, "decompression_rate": 30616570.299892657, "ratio": 3.883756693420099}], "lz4": [{"codec": "lz4-0", "level": "0", "compression_rate": 381038185.425984, "decompression_rate": 881968724.7031701, "ratio": 2.1003591175490857}, {"codec": "lz4-1", "level": "1", "compression_rate": 334241032.94673, "decompression_rate": 896801274.0413551, "ratio": 2.1003591175490857}, {"codec": "lz4-2", "level": "2", "compression_rate": 432454698.8868402, "decompression_rate": 1017681030.7532923, "ratio": 2.1003591175490857}, {"codec": "lz4-3", "level": "3", "compression_rate": 72434677.48544297, "decompression_rate": 999845424.3050079, "ratio": 2.604568088618139}, {"codec": "lz4-4", "level": "4", "compression_rate": 60592623.16063463, "decompression_rate": 1000591207.8481115, "ratio": 2.654628835084887}, {"codec": "lz4-5", "level": "5", "compression_rate": 50958519.96269675, "decompression_rate": 997617471.4458033, "ratio": 2.6853260260865466}, {"codec": "lz4-6", "level": "6", "compression_rate": 43305777.930241905, "decompression_rate": 987004654.5427502, "ratio": 2.7027845025126753}, {"codec": "lz4-7", "level": "7", "compression_rate": 36379142.371791705, "decompression_rate": 993967132.7749038, "ratio": 2.712583302206625}, {"codec": "lz4-8", "level": "8", "compression_rate": 31356920.921805058, "decompression_rate": 1008660413.4854987, "ratio": 2.717625913717041}, {"codec": "lz4-9", "level": "9", "compression_rate": 27035637.924077813, "decompression_rate": 1019365036.1261703, "ratio": 2.7201745572929883}, {"codec": "lz4-10", "level": "10", "compression_rate": 20785914.812260497, "decompression_rate": 1013651299.980326, "ratio": 2.7302716755803127}, {"codec": "lz4-11", "level": "11", "compression_rate": 12030319.627297033, "decompression_rate": 1033118969.4836711, "ratio": 2.740205090493116}, {"codec": "lz4-12", "level": "12", "compression_rate": 9924126.116595784, "decompression_rate": 1006768221.6556637, "ratio": 2.7420827111609194}, {"codec": "lz4-13", "level": "13", "compression_rate": 9929608.990588168, "decompression_rate": 1036374794.7329016, "ratio": 2.7420827111609194}, {"codec": "lz4-14", "level": "14", "compression_rate": 9898069.186666409, "decompression_rate": 1004829724.7190471, "ratio": 2.7420827111609194}, {"codec": "lz4-15", "level": "15", "compression_rate": 9835193.675944338, "decompression_rate": 989592632.032628, "ratio": 2.7420827111609194}, {"codec": "lz4-16", "level": "16", "compression_rate": 9600732.297763413, "decompression_rate": 990216689.4679917, "ratio": 2.7420827111609194}], "py-lz4framed": [{"codec": "py-lz4framed-0", "level": "0", "compression_rate": 501644735.88897836, "decompression_rate": 1689523407.8100448, "ratio": 2.1003591175490857}, {"codec": "py-lz4framed-1", "level": "1", "compression_rate": 508951970.7919639, "decompression_rate": 1690545229.4279933, "ratio": 2.1003591175490857}, {"codec": "py-lz4framed-2", "level": "2", "compression_rate": 503445974.21334743, "decompression_rate": 1708591466.743556, "ratio": 2.1003591175490857}, {"codec": "py-lz4framed-3", "level": "3", "compression_rate": 81736958.21312802, "decompression_rate": 1595951171.711838, "ratio": 2.604568088618139}, {"codec": "py-lz4framed-4", "level": "4", "compression_rate": 65292397.74221659, "decompression_rate": 1518133295.5009723, "ratio": 2.654628835084887}, {"codec": "py-lz4framed-5", "level": "5", "compression_rate": 52081085.97408828, "decompression_rate": 1667481272.9917805, "ratio": 2.6853260260865466}, {"codec": "py-lz4framed-6", "level": "6", "compression_rate": 44541691.23584233, "decompression_rate": 1519711084.1627364, "ratio": 2.7027845025126753}, {"codec": "py-lz4framed-7", "level": "7", "compression_rate": 36431362.015029915, "decompression_rate": 1593173575.3825123, "ratio": 2.712583302206625}, {"codec": "py-lz4framed-8", "level": "8", "compression_rate": 31853341.84434234, "decompression_rate": 1585764402.081901, "ratio": 2.717625913717041}, {"codec": "py-lz4framed-9", "level": "9", "compression_rate": 28017162.031922836, "decompression_rate": 1609820953.915889, "ratio": 2.7201745572929883}, {"codec": "py-lz4framed-10", "level": "10", "compression_rate": 19705745.19663659, "decompression_rate": 1624437628.1794994, "ratio": 2.730349581329905}, {"codec": "py-lz4framed-11", "level": "11", "compression_rate": 11001197.1374972, "decompression_rate": 1605921096.954489, "ratio": 2.740219474043916}, {"codec": "py-lz4framed-12", "level": "12", "compression_rate": 9080558.070684064, "decompression_rate": 1547132736.7770107, "ratio": 2.7420827111609194}], "lzma": [{"codec": "lzma-0", "level": "0", "compression_rate": 14782764.131056264, "decompression_rate": 49972797.86923124, "ratio": 3.3863730180099316}, {"codec": "lzma-1", "level": "1", "compression_rate": 9746385.867374318, "decompression_rate": 54185902.79882912, "ratio": 3.628193386767715}, {"codec": "lzma-2", "level": "2", "compression_rate": 5887854.429363333, "decompression_rate": 55495070.71919481, "ratio": 3.7369447834778806}, {"codec": "lzma-3", "level": "3", "compression_rate": 3585963.2961328244, "decompression_rate": 57689443.056080855, "ratio": 3.8015034866624946}, {"codec": "lzma-4", "level": "4", "compression_rate": 2594701.1563387197, "decompression_rate": 56845117.76371074, "ratio": 4.0675116186916656}, {"codec": "lzma-5", "level": "5", "compression_rate": 1905287.400112623, "decompression_rate": 53369493.18156107, "ratio": 4.242475727630632}, {"codec": "lzma-6", "level": "6", "compression_rate": 1633083.9879816186, "decompression_rate": 55587076.32167839, "ratio": 4.3077927184992095}, {"codec": "lzma-7", "level": "7", "compression_rate": 1519633.421584727, "decompression_rate": 54442780.912108056, "ratio": 4.33074699200101}, {"codec": "lzma-8", "level": "8", "compression_rate": 1390293.557869895, "decompression_rate": 48400149.01903758, "ratio": 4.344871769536203}, {"codec": "lzma-9", "level": "9", "compression_rate": 1413813.5847869676, "decompression_rate": 59600130.25526698, "ratio": 4.347127092737007}], "python-lzo": [{"codec": "python-lzo-1", "level": "1", "compression_rate": 421149036.2576472, "decompression_rate": 501825285.049403, "ratio": 2.1074093960954072}, {"codec": "python-lzo-2", "level": "2", "compression_rate": 5969743.723014952, "decompression_rate": 429202651.8418224, "ratio": 2.814636781846218}, {"codec": "python-lzo-3", "level": "3", "compression_rate": 5613149.972779556, "decompression_rate": 408407726.47255015, "ratio": 2.814636781846218}, {"codec": "python-lzo-4", "level": "4", "compression_rate": 5324399.294311334, "decompression_rate": 414270248.7695691, "ratio": 2.814636781846218}, {"codec": "python-lzo-5", "level": "5", "compression_rate": 5061208.574499942, "decompression_rate": 323633391.8906316, "ratio": 2.814636781846218}, {"codec": "python-lzo-6", "level": "6", "compression_rate": 4783436.28804191, "decompression_rate": 432914899.86301047, "ratio": 2.814636781846218}, {"codec": "python-lzo-7", "level": "7", "compression_rate": 5351120.047452393, "decompression_rate": 409344509.5368411, "ratio": 2.814636781846218}, {"codec": "python-lzo-8", "level": "8", "compression_rate": 5089882.890711278, "decompression_rate": 334633709.831171, "ratio": 2.814636781846218}, {"codec": "python-lzo-9", "level": "9", "compression_rate": 5522533.518791475, "decompression_rate": 484600154.0433179, "ratio": 2.814636781846218}], "pyqlz": [{"codec": "pyqlz", "level": "", "compression_rate": 183895565.58737978, "decompression_rate": 307032780.1693917, "ratio": 2.506604557494441}], "pyquicklz": [{"codec": "pyquicklz", "level": "", "compression_rate": 47706619.044176474, "decompression_rate": 468772009.5400289, "ratio": 2.5903411763068185}], "python-quicklz": [{"codec": "python-quicklz", "level": "", "compression_rate": 44673424.340380274, "decompression_rate": 479011767.386213, "ratio": 2.5903411763068185}], "python-snappy": [{"codec": "python-snappy", "level": "", "compression_rate": 443119042.70044476, "decompression_rate": 963107432.5354409, "ratio": 2.0749312604284382}], "zlib": [{"codec": "zlib-1", "level": "1", "compression_rate": 67049444.88501511, "decompression_rate": 243969534.9058645, "ratio": 2.743336574939351}, {"codec": "zlib-2", "level": "2", "compression_rate": 61371545.00216143, "decompression_rate": 258601383.36152154, "ratio": 2.8258811395819357}, {"codec": "zlib-3", "level": "3", "compression_rate": 47467904.1383549, "decompression_rate": 234261643.12088802, "ratio": 2.904702177860031}, {"codec": "zlib-4", "level": "4", "compression_rate": 42044853.77328992, "decompression_rate": 230899151.83029592, "ratio": 2.985057902702649}, {"codec": "zlib-5", "level": "5", "compression_rate": 32875991.096212868, "decompression_rate": 251496799.61923987, "ratio": 3.0645222134191785}, {"codec": "zlib-6", "level": "6", "compression_rate": 25663067.869606763, "decompression_rate": 268823765.76531124, "ratio": 3.1064398945360474}, {"codec": "zlib-7", "level": "7", "compression_rate": 21239908.16795617, "decompression_rate": 262653481.7065037, "ratio": 3.119644115901868}, {"codec": "zlib-8", "level": "8", "compression_rate": 13257382.806932528, "decompression_rate": 265531593.16567874, "ratio": 3.1309911374408625}, {"codec": "zlib-9", "level": "9", "compression_rate": 10228479.551500516, "decompression_rate": 264233519.26896763, "ratio": 3.1332535476473287}], "zstandard": [{"codec": "zstandard-1", "level": "1", "compression_rate": 294824955.79923165, "decompression_rate": 676793670.6231204, "ratio": 2.883293614971906}, {"codec": "zstandard-2", "level": "2", "compression_rate": 222097026.28601977, "decompression_rate": 624060420.3319424, "ratio": 3.0454631687835265}, {"codec": "zstandard-3", "level": "3", "compression_rate": 133327041.42277682, "decompression_rate": 535699131.0450319, "ratio": 3.178520740679132}, {"codec": "zstandard-4", "level": "4", "compression_rate": 111382784.81696261, "decompression_rate": 514057184.92818826, "ratio": 3.235820091061119}, {"codec": "zstandard-5", "level": "5", "compression_rate": 48949695.70659778, "decompression_rate": 527352337.92562836, "ratio": 3.3120035931010574}, {"codec": "zstandard-6", "level": "6", "compression_rate": 31779589.539326858, "decompression_rate": 471890474.673835, "ratio": 3.3698569470640396}, {"codec": "zstandard-7", "level": "7", "compression_rate": 20994317.381367616, "decompression_rate": 416601245.38614196, "ratio": 3.455467453917065}, {"codec": "zstandard-8", "level": "8", "compression_rate": 16733654.901440136, "decompression_rate": 496614545.24156654, "ratio": 3.488400574392161}, {"codec": "zstandard-9", "level": "9", "compression_rate": 17012757.493414484, "decompression_rate": 594115711.0379567, "ratio": 3.5215631264316434}, {"codec": "zstandard-10", "level": "10", "compression_rate": 13914256.76027371, "decompression_rate": 577892087.5667689, "ratio": 3.560176001573047}, {"codec": "zstandard-11", "level": "11", "compression_rate": 11252830.547392327, "decompression_rate": 571602353.8318472, "ratio": 3.5778160117436792}, {"codec": "zstandard-12", "level": "12", "compression_rate": 6064669.733851682, "decompression_rate": 449333665.5695913, "ratio": 3.606172192032524}, {"codec": "zstandard-13", "level": "13", "compression_rate": 5224331.3042003615, "decompression_rate": 553638444.4596357, "ratio": 3.6487986032934465}, {"codec": "zstandard-14", "level": "14", "compression_rate": 5488808.509928056, "decompression_rate": 499125690.87831986, "ratio": 3.6812752621677904}, {"codec": "zstandard-15", "level": "15", "compression_rate": 3954647.7035903526, "decompression_rate": 392013907.6138681, "ratio": 3.707487806604258}, {"codec": "zstandard-16", "level": "16", "compression_rate": 3317323.038145559, "decompression_rate": 556822601.229352, "ratio": 3.8048100794125843}, {"codec": "zstandard-17", "level": "17", "compression_rate": 2528002.7552938513, "decompression_rate": 423014717.6077316, "ratio": 3.881680026889854}, {"codec": "zstandard-18", "level": "18", "compression_rate": 1973402.2374286337, "decompression_rate": 435311862.35091746, "ratio": 3.9475742594062884}, {"codec": "zstandard-19", "level": "19", "compression_rate": 1843264.3464311715, "decompression_rate": 497491401.6486824, "ratio": 3.9799134357290633}, {"codec": "zstandard-20", "level": "20", "compression_rate": 1533221.6549207447, "decompression_rate": 356139790.3428949, "ratio": 4.011204022916611}, {"codec": "zstandard-21", "level": "21", "compression_rate": 1340944.7229831563, "decompression_rate": 423146482.8703164, "ratio": 4.018729641848216}, {"codec": "zstandard-22", "level": "22", "compression_rate": 1296067.1043316321, "decompression_rate": 471332326.2842887, "ratio": 4.018852935604007}], "zstd": [{"codec": "zstd-1", "level": "1", "compression_rate": 313639761.19520944, "decompression_rate": 707503201.1353619, "ratio": 2.883293614971906}, {"codec": "zstd-2", "level": "2", "compression_rate": 230171747.17575598, "decompression_rate": 663972093.6353211, "ratio": 3.0454631687835265}, {"codec": "zstd-3", "level": "3", "compression_rate": 158272239.24801293, "decompression_rate": 625650985.7347407, "ratio": 3.178520740679132}, {"codec": "zstd-4", "level": "4", "compression_rate": 127578389.03563116, "decompression_rate": 572620856.3771025, "ratio": 3.235820091061119}, {"codec": "zstd-5", "level": "5", "compression_rate": 47411620.52656419, "decompression_rate": 537486470.7858129, "ratio": 3.3120035931010574}, {"codec": "zstd-6", "level": "6", "compression_rate": 35005317.26916361, "decompression_rate": 555731551.654587, "ratio": 3.3698569470640396}, {"codec": "zstd-7", "level": "7", "compression_rate": 25493003.479275923, "decompression_rate": 600757169.8066946, "ratio": 3.455467453917065}, {"codec": "zstd-8", "level": "8", "compression_rate": 20802366.120902926, "decompression_rate": 599213830.1716632, "ratio": 3.488400574392161}, {"codec": "zstd-9", "level": "9", "compression_rate": 15427989.948277751, "decompression_rate": 566638349.2098323, "ratio": 3.5215631264316434}, {"codec": "zstd-10", "level": "10", "compression_rate": 12041638.472296823, "decompression_rate": 512870966.307146, "ratio": 3.560176001573047}, {"codec": "zstd-11", "level": "11", "compression_rate": 9840716.788320927, "decompression_rate": 511927425.422333, "ratio": 3.5778160117436792}, {"codec": "zstd-12", "level": "12", "compression_rate": 5240626.650186166, "decompression_rate": 437852862.76885366, "ratio": 3.606172192032524}, {"codec": "zstd-13", "level": "13", "compression_rate": 6039147.066990536, "decompression_rate": 583796251.9456416, "ratio": 3.6487986032934465}, {"codec": "zstd-14", "level": "14", "compression_rate": 4986684.127901772, "decompression_rate": 437911875.7111343, "ratio": 3.6812752621677904}, {"codec": "zstd-15", "level": "15", "compression_rate": 3895679.0942674964, "decompression_rate": 500351768.28741294, "ratio": 3.707487806604258}, {"codec": "zstd-16", "level": "16", "compression_rate": 3200332.2757779458, "decompression_rate": 480017259.1707817, "ratio": 3.8048100794125843}, {"codec": "zstd-17", "level": "17", "compression_rate": 2450473.9065566263, "decompression_rate": 501867529.06003493, "ratio": 3.881680026889854}, {"codec": "zstd-18", "level": "18", "compression_rate": 2078201.035465701, "decompression_rate": 418009739.58842987, "ratio": 3.9475742594062884}, {"codec": "zstd-19", "level": "19", "compression_rate": 1772982.7805304816, "decompression_rate": 446186132.4097304, "ratio": 3.9799134357290633}, {"codec": "zstd-20", "level": "20", "compression_rate": 1657602.1511333045, "decompression_rate": 424550873.4523043, "ratio": 4.011204022916611}, {"codec": "zstd-21", "level": "21", "compression_rate": 1401259.3155932506, "decompression_rate": 396877817.52440435, "ratio": 4.018729641848216}, {"codec": "zstd-22", "level": "22", "compression_rate": 1334806.2470333236, "decompression_rate": 476923632.0985131, "ratio": 4.018852935604007}]}`);
+        drawRatioCompressionChart();
+        drawRatioDecompressionChart();
+        drawCompressionDecompressionChart();
+
+    });
+
+
+</script>

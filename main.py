@@ -221,7 +221,7 @@ def main():
 
             logging.info(">>> SUM: ratio {:6.3f}% , compress speed {:7.3f} MB/s , decompress speed {:7.3f} MB/s".format(ratio, c_speed / (1024 ** 2), dc_speed / (1024 ** 2)))
         else:
-            logging.error("Uknown")
+            logging.error("Unknown")
 
     json_path = sys.argv[2]
     with open(json_path, "w") as f:

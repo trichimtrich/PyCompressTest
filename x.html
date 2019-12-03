@@ -1,0 +1,294 @@
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.js"></script>
+<script src="https://code.highcharts.com/highcharts.js"></script>
+
+<div id="ratio-compression-chart" class="embed-responsive-item panel-body"></div>
+
+<div id="ratio-decompression-chart" class="embed-responsive-item panel-body"></div>
+
+<div id="compression-decompression-chart" class="embed-responsive-item panel-body"></div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+
+        function decimalAdjust(type, value, exp) {
+            if (typeof exp === "undefined" || +exp === 0) {
+                return Math[type](value);
+            }
+            value = +value;
+            exp = +exp;
+            if (isNaN(value) || !(typeof exp === "number" && exp % 1 === 0)) {
+                return NaN;
+            }
+            value = value.toString().split("e");
+            value = Math[type](+(value[0] + "e" + (value[1] ? (+value[1] - exp) : -exp)));
+            value = value.toString().split("e");
+            return +(value[0] + "e" + (value[1] ? (+value[1] + exp) : exp));
+        }
+
+        if (!Math.round10) {
+            Math.round10 = function (value, exp) {
+                return decimalAdjust("round", value, exp);
+            };
+        }
+        if (!Math.floor10) {
+            Math.floor10 = function (value, exp) {
+                return decimalAdjust("floor", value, exp);
+            };
+        }
+        if (!Math.ceil10) {
+            Math.ceil10 = function (value, exp) {
+                return decimalAdjust("ceil", value, exp);
+            };
+        }
+
+        var colors = d3.scale.category20().range()
+            .concat(d3.scale.category20b().range(),
+                d3.scale.category20c().range());
+
+        function formatSize(size, precision) {
+            if (precision == undefined)
+                precision = -2;
+
+            if (size < 1024) {
+                return size + " B";
+            } else if (size < (1024 * 1024)) {
+                return Math.round10(size / 1024, precision) + " KiB";
+            } else if (size < (1024 * 1024 * 1024)) {
+                return Math.round10(size / (1024 * 1024), precision) + " MiB";
+            } else if (size < (1024 * 1024 * 1024 * 1024)) {
+                return Math.round10(size / (1024 * 1024 * 1024), precision) + " GiB";
+            } else {
+                return Math.round10(size / (1024 * 1024 * 1024 * 1024), precision) + " TiB";
+            }
+        }
+
+        function formatSpeed(speed, precision) {
+            return formatSize(speed, precision) + "/s";
+        }
+
+
+        function drawRatioCompressionChart(xAxis, yAxis) {
+            if (xAxis == undefined)
+                xAxis = "logarithmic"; // linear
+            if (yAxis == undefined)
+                yAxis = "linear";
+
+
+            var chart = $("#ratio-compression-chart").highcharts({
+                chart: { type: "scatter" },
+                title: { text: null },
+                xAxis: {
+                    title: {
+                        enabled: true,
+                        text: "Compression Speed"
+                    },
+                    startOnTick: true,
+                    endOnTick: true,
+                    min: (xAxis == "logarithmic") ? undefined : 0,
+                    labels: {
+                        rotation: -45,
+                        formatter: function () { return formatSpeed(this.value); }
+                    },
+                    type: xAxis
+                },
+                yAxis: {
+                    title: {
+                        text: "Ratio"
+                    },
+                    type: yAxis
+                },
+                legend: {
+                    layout: "vertical",
+                    align: "right",
+                    verticalAlign: "top"
+                },
+                plotOptions: {
+                    scatter: {
+                        tooltip: {
+                            headerFormat: "<b>{series.name}</b>",
+                            pointFormatter: function () {
+                                res = ":<b>" + this.codec + "</b><hr/><br/>";
+                                if (this.level != "")
+                                    res += "Level: " + this.level + "<br/>";
+                                res += "Ratio: " + Math.round10(this.y, -2) + "<br/>";
+                                res += "Compression speed: " + formatSpeed(this.x) + "<br/>";
+                                res += "Decompression speed: " + formatSpeed(this.z) + "<br/>";
+                                return res;
+                            }
+                        }
+                    }
+                },
+
+                series: chartKeys.map(function (key, i) {
+                    return {
+                        visible: true,
+                        name: key,
+                        color: colors[i % colors.length],
+                        data: chartData[key].map(function (p) {
+                            return {
+                                x: p.compression_rate,
+                                y: p.ratio,
+                                z: p.decompression_rate,
+                                codec: p.codec,
+                                level: p.level,
+                            }
+                        })
+                    }
+                })
+            }).highcharts();
+        }
+
+        function drawRatioDecompressionChart(xAxis, yAxis) {
+            if (xAxis == undefined)
+                xAxis = "logarithmic"; // linear
+            if (yAxis == undefined)
+                yAxis = "linear";
+
+            var chart = $("#ratio-decompression-chart").highcharts({
+                chart: { type: "scatter" },
+                title: { text: null },
+                xAxis: {
+                    title: {
+                        enabled: true,
+                        text: "Decompression Speed"
+                    },
+                    startOnTick: true,
+                    endOnTick: true,
+                    min: (xAxis == "logarithmic") ? undefined : 0,
+                    labels: {
+                        rotation: -45,
+                        formatter: function () { return formatSpeed(this.value); }
+                    },
+                    type: xAxis
+                },
+                yAxis: {
+                    title: {
+                        text: "Ratio"
+                    },
+                    type: yAxis
+                },
+                legend: {
+                    layout: "vertical",
+                    align: "right",
+                    verticalAlign: "top"
+                },
+                plotOptions: {
+                    scatter: {
+                        tooltip: {
+                            headerFormat: "<b>{series.name}</b>",
+                            pointFormatter: function () {
+                                res = ":<b>" + this.codec + "</b><hr/><br/>";
+                                if (this.level != "")
+                                    res += "Level: " + this.level + "<br/>";
+                                res += "Ratio: " + Math.round10(this.y, -2) + "<br/>";
+                                res += "Compression speed: " + formatSpeed(this.z) + "<br/>";
+                                res += "Decompression speed: " + formatSpeed(this.x) + "<br/>";
+                                return res;
+                            }
+                        }
+                    }
+                },
+                series: chartKeys.map(function (key, i) {
+                    return {
+                        visible: true,
+                        name: key,
+                        color: colors[i % colors.length],
+                        data: chartData[key].map(function (p) {
+                            return {
+                                z: p.compression_rate,
+                                y: p.ratio,
+                                x: p.decompression_rate,
+                                codec: p.codec,
+                                level: p.level,
+                            }
+                        })
+                    }
+                })
+            }).highcharts();
+        }
+
+        function drawCompressionDecompressionChart(xAxis, yAxis) {
+            if (xAxis == undefined)
+                xAxis = "logarithmic"; // linear
+            if (yAxis == undefined)
+                xAxis = "logarithmic"; // linear
+
+            var chart = $("#compression-decompression-chart").highcharts({
+                chart: { type: "scatter" },
+                title: { text: null },
+                xAxis: {
+                    title: {
+                        enabled: true,
+                        text: "Decompression Speed"
+                    },
+                    endOnTick: true,
+                    min: (xAxis == "logarithmic") ? undefined : 0,
+                    labels: {
+                        rotation: -45,
+                        formatter: function () { return formatSpeed(this.value); }
+                    },
+                    type: xAxis
+                },
+                yAxis: {
+                    title: {
+                        text: "Compression Speed"
+                    },
+                    startOnTick: true,
+                    endOnTick: true,
+                    min: (yAxis == "logarithmic") ? undefined : 0,
+                    labels: {
+                        formatter: function () { return formatSpeed(this.value); }
+                    },
+                    type: yAxis
+                },
+                legend: {
+                    layout: "vertical",
+                    align: "right",
+                    verticalAlign: "top"
+                },
+                plotOptions: {
+                    scatter: {
+                        tooltip: {
+                            headerFormat: "<b>{series.name}</b>",
+                            pointFormatter: function () {
+                                res = ":<b>" + this.codec + "</b><hr/><br/>";
+                                if (this.level != "")
+                                    res += "Level: " + this.level + "<br/>";
+                                res += "Ratio: " + Math.round10(this.z, -2) + "<br/>";
+                                res += "Compression speed: " + formatSpeed(this.y) + "<br/>";
+                                res += "Decompression speed: " + formatSpeed(this.x) + "<br/>";
+                                return res;
+                            }
+                        }
+                    }
+                },
+                series: chartKeys.map(function (key, i) {
+                    return {
+                        visible: true,
+                        name: key,
+                        color: colors[i % colors.length],
+                        data: chartData[key].map(function (p) {
+                            return {
+                                y: p.compression_rate,
+                                z: p.ratio,
+                                x: p.decompression_rate,
+                                codec: p.codec,
+                                level: p.level,
+                            }
+                        })
+                    }
+                })
+            }).highcharts();
+        }
+
+        chartKeys = JSON.parse(`replace_this_keys`);
+        chartData = JSON.parse(`replace_this_data`);
+        drawRatioCompressionChart();
+        drawRatioDecompressionChart();
+        drawCompressionDecompressionChart();
+
+    });
+
+
+</script>
