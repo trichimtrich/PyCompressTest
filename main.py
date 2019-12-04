@@ -52,6 +52,7 @@ def run_test(data_array):
 
     results = {}
     for fn, data in data_array:
+        # capture timestamp before running any test
         start_time = time.time()
 
         # compress
@@ -59,6 +60,7 @@ def run_test(data_array):
         c_data = compress_func(data%(c_args)s)
         c_time1 = f_time()
 
+        # timestamp in between compressing and decompressing
         mid_time = time.time()
 
         # decompress
@@ -66,19 +68,21 @@ def run_test(data_array):
         dc_data = decompress_func(c_data%(dc_args)s)
         dc_time1 = f_time()
 
+        # capture timestamp after running any test
         end_time = time.time()
 
         # assume len(dc_data) == len(data)
         if len(dc_data) != len(data):
+            # algorithm broken or something?
             continue
 
         c_len = len(c_data)
         c_time = c_time1 - c_time0 # second
         dc_time = dc_time1 - dc_time0 # second
 
+        # clean up memory for measuring
         del dc_data
         del c_data
-
 
         results[fn] = {
             "size": len(data),
@@ -95,7 +99,7 @@ def run_test(data_array):
         sum_c_time += c_time
         sum_dc_time += dc_time
 
-    # avoid conflict with path
+    # avoid conflict with path by using forbiden characters
     results["*"] = {
         "size": len_data,
         "compressed_size": len_c_data,
@@ -110,17 +114,23 @@ def main():
     path = sys.argv[1]
     data_array = read_folder_or_file(path)
 
-    time.sleep(0.5)
+    # delay a bit to measure the memory usage when loading data
+    time.sleep(1)
+
     start_test = time.time()
     results = run_test(data_array)
     end_test = time.time()
+
     results["*"].update({
         "start_test": start_test,
         "end_test": end_test,
     })
 
+    # delay a bit before return data
+    time.sleep(1)
+
     print(json.dumps(results))
-    time.sleep(0.5)
+    return 0
 
 if __name__ == "__main__":
     main()
@@ -171,8 +181,8 @@ def run_test(method, path):
         if proc.poll() is not None:
             break
 
-    stdout = proc.communicate()[0]
     end_process = time.time()
+    stdout = proc.communicate()[0]
 
     os.remove(tmp_fn)
 
