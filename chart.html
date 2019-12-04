@@ -1,15 +1,22 @@
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.js"></script>
 <script src="https://code.highcharts.com/highcharts.js"></script>
 
-<div id="ratio-compression-chart" class="embed-responsive-item panel-body"></div>
 
-<div id="ratio-decompression-chart" class="embed-responsive-item panel-body"></div>
+<div id="ratio-compression-chart"></div><hr>
+<div id="ratio-decompression-chart"></div><hr>
+<div id="compression-decompression-chart"></div><hr>
 
-<div id="compression-decompression-chart" class="embed-responsive-item panel-body"></div>
+<div id="mem-usage-container">
+
+</div>
 
 <script>
     document.addEventListener("DOMContentLoaded", function () {
+
+        function topFunction() {
+  document.body.scrollTop = 0; // For Safari
+  document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
+}
 
         function decimalAdjust(type, value, exp) {
             if (typeof exp === "undefined" || +exp === 0) {
@@ -68,16 +75,11 @@
         }
 
 
-        function drawRatioCompressionChart(xAxis, yAxis) {
-            if (xAxis == undefined)
-                xAxis = "logarithmic"; // linear
-            if (yAxis == undefined)
-                yAxis = "linear";
-
-
-            var chart = $("#ratio-compression-chart").highcharts({
+        function drawRatioCompressionChart(chartData, chartKeys) {
+            Highcharts.chart("ratio-compression-chart", {
                 chart: { type: "scatter" },
-                title: { text: null },
+                title: { text: "Ratio - Compression Speed" },
+                subtitle: { text: "Click point to jump to memory usage of codec"},
                 xAxis: {
                     title: {
                         enabled: true,
@@ -85,18 +87,18 @@
                     },
                     startOnTick: true,
                     endOnTick: true,
-                    min: (xAxis == "logarithmic") ? undefined : 0,
+                    min: undefined,
                     labels: {
                         rotation: -45,
                         formatter: function () { return formatSpeed(this.value); }
                     },
-                    type: xAxis
+                    type: "logarithmic",
                 },
                 yAxis: {
                     title: {
                         text: "Ratio"
                     },
-                    type: yAxis
+                    type: "linear"
                 },
                 legend: {
                     layout: "vertical",
@@ -115,6 +117,13 @@
                                 res += "Compression speed: " + formatSpeed(this.x) + "<br/>";
                                 res += "Decompression speed: " + formatSpeed(this.z) + "<br/>";
                                 return res;
+                            }
+                        },
+                        point: {
+                            events: {
+                                click: function() {
+                                    location.hash = `#${this.codec}-chart`;
+                                }
                             }
                         }
                     }
@@ -136,18 +145,14 @@
                         })
                     }
                 })
-            }).highcharts();
+            });
         }
 
-        function drawRatioDecompressionChart(xAxis, yAxis) {
-            if (xAxis == undefined)
-                xAxis = "logarithmic"; // linear
-            if (yAxis == undefined)
-                yAxis = "linear";
-
-            var chart = $("#ratio-decompression-chart").highcharts({
+        function drawRatioDecompressionChart(chartData, chartKeys) {
+            Highcharts.chart("ratio-decompression-chart", {
                 chart: { type: "scatter" },
-                title: { text: null },
+                title: { text: "Ratio - Decompression Speed" },
+                subtitle: { text: "Click point to jump to memory usage of codec"},
                 xAxis: {
                     title: {
                         enabled: true,
@@ -155,18 +160,18 @@
                     },
                     startOnTick: true,
                     endOnTick: true,
-                    min: (xAxis == "logarithmic") ? undefined : 0,
+                    min: undefined,
                     labels: {
                         rotation: -45,
                         formatter: function () { return formatSpeed(this.value); }
                     },
-                    type: xAxis
+                    type: "logarithmic"
                 },
                 yAxis: {
                     title: {
                         text: "Ratio"
                     },
-                    type: yAxis
+                    type: "linear"
                 },
                 legend: {
                     layout: "vertical",
@@ -185,6 +190,13 @@
                                 res += "Compression speed: " + formatSpeed(this.z) + "<br/>";
                                 res += "Decompression speed: " + formatSpeed(this.x) + "<br/>";
                                 return res;
+                            }
+                        },
+                        point: {
+                            events: {
+                                click: function() {
+                                    location.hash = `#${this.codec}-chart`;
+                                }
                             }
                         }
                     }
@@ -205,30 +217,26 @@
                         })
                     }
                 })
-            }).highcharts();
+            });
         }
 
-        function drawCompressionDecompressionChart(xAxis, yAxis) {
-            if (xAxis == undefined)
-                xAxis = "logarithmic"; // linear
-            if (yAxis == undefined)
-                xAxis = "logarithmic"; // linear
-
-            var chart = $("#compression-decompression-chart").highcharts({
+        function drawCompressionDecompressionChart(chartData, chartKeys) {
+            Highcharts.chart("compression-decompression-chart", {
                 chart: { type: "scatter" },
-                title: { text: null },
+                title: { text: "Compression Speed - Decompression Speed" },
+                subtitle: { text: "Click point to jump to memory usage of codec"},
                 xAxis: {
                     title: {
                         enabled: true,
                         text: "Decompression Speed"
                     },
                     endOnTick: true,
-                    min: (xAxis == "logarithmic") ? undefined : 0,
+                    min: undefined,
                     labels: {
                         rotation: -45,
                         formatter: function () { return formatSpeed(this.value); }
                     },
-                    type: xAxis
+                    type: "logarithmic"
                 },
                 yAxis: {
                     title: {
@@ -236,11 +244,11 @@
                     },
                     startOnTick: true,
                     endOnTick: true,
-                    min: (yAxis == "logarithmic") ? undefined : 0,
+                    min: undefined,
                     labels: {
                         formatter: function () { return formatSpeed(this.value); }
                     },
-                    type: yAxis
+                    type: "logarithmic"
                 },
                 legend: {
                     layout: "vertical",
@@ -259,6 +267,13 @@
                                 res += "Compression speed: " + formatSpeed(this.y) + "<br/>";
                                 res += "Decompression speed: " + formatSpeed(this.x) + "<br/>";
                                 return res;
+                            }
+                        },
+                        point: {
+                            events: {
+                                click: function() {
+                                    location.hash = `#${this.codec}-chart`;
+                                }
                             }
                         }
                     }
@@ -279,14 +294,152 @@
                         })
                     }
                 })
-            }).highcharts();
+            });
         }
 
+        function drawMemUsage(record, maxMem) {
+            mem_usage = record["mem_usage"];
+            idx_process = record["mem_state"]["process"];
+            idx_test = record["mem_state"]["test"];
+            idx_compression = record["mem_state"]["compression"];
+            idx_decompression = record["mem_state"]["decompression"];
+
+            data_process = {
+                name: "Process",
+                data: [],
+            }
+            for (var i = idx_process[0]; i <= idx_process[1]; i++) {
+                data_process.data.push({
+                    x: i,
+                    y: mem_usage[i]
+                });
+            }
+
+            data_test = {
+                name: "Test",
+                data: [],
+            }
+            for (var i = idx_test[0]; i <= idx_test[1]; i++) {
+                data_test.data.push({
+                    x: i,
+                    y: mem_usage[i]
+                });
+            }
+
+            data_compression = {
+                name: "Compression",
+                data: [],
+            }
+            idx_compression.forEach(function (val, idx) {
+                if (idx != 0) {
+                    data_compression.data.push(null);
+                }
+                for (var i = val[0]; i <= val[1]; i++) {
+                    data_compression.data.push({
+                        x: i,
+                        y: mem_usage[i],
+                    })
+                }
+            });
+
+            data_decompression = {
+                name: "Decompression",
+                data: [],
+            }
+            idx_decompression.forEach(function (val, idx) {
+                if (idx != 0) {
+                    data_decompression.data.push(null);
+                }
+                for (var i = val[0]; i <= val[1]; i++) {
+                    data_decompression.data.push({
+                        x: i,
+                        y: mem_usage[i],
+                    })
+                }
+            });
+
+            id_name = `${record["codec"]}-chart`;
+            x = document.createElement("div");
+            x.id = id_name;
+            document.getElementById("mem-usage-container").appendChild(x);
+            y = document.createElement("hr");
+            document.getElementById("mem-usage-container").appendChild(y);
+
+            Highcharts.chart(id_name, {
+                chart: { type: "area" },
+                title: { text: `Memory usage of ${record["codec"]}` },
+                subtitle: { text: `<a href="#" onclick="topFunction()">Back to top</a>` },
+                xAxis: {
+                    title: {
+                        enabled: true,
+                        text: "Processing Time"
+                    },
+                    endOnTick: true,
+                    min: 0,
+                    labels: {
+                        // rotation: -45,
+                        formatter: function () { return this.value / 10 + "s" }
+                    },
+                    type: "linear",
+                },
+                yAxis: {
+                    title: {
+                        text: "Memory Usage"
+                    },
+                    startOnTick: true,
+                    endOnTick: true,
+                    min: 0,
+                    max: maxMem,
+                    labels: {
+                        formatter: function () { return formatSize(this.value * 1024 * 1024); }
+                    },
+                    type: "linear",
+                },
+                plotOptions: {
+                    area: {
+                        marker: {
+                            enabled: false,
+                            symbol: "circle",
+                            radius: 2,
+                            states: {
+                                hover: {
+                                    enabled: true
+                                }
+                            }
+                        },
+                        tooltip: {
+                            headerFormat: "<b>{series.name}</b>",
+                            pointFormatter: function () {
+                                res = "<hr/><br/>";
+                                res += "Time: " + Math.round10(this.x / 10, -1) + "s<br/>";
+                                res += "Usage: " + formatSize(this.y * 1024 * 1024) + "<br/>";
+                                return res;
+                            }
+                        }
+                    }
+                },
+                series: [
+                    data_process,
+                    data_test,
+                    data_compression,
+                    data_decompression,
+                ],
+            });
+        }
+
+        maxMem = JSON.parse(`replace_this_max`);
         chartKeys = JSON.parse(`replace_this_keys`);
         chartData = JSON.parse(`replace_this_data`);
-        drawRatioCompressionChart();
-        drawRatioDecompressionChart();
-        drawCompressionDecompressionChart();
+        drawRatioCompressionChart(chartData, chartKeys);
+        drawRatioDecompressionChart(chartData, chartKeys);
+        drawCompressionDecompressionChart(chartData, chartKeys);
+
+        // record = chartData["brotli"][0];
+        chartKeys.forEach(function(key) {
+            chartData[key].forEach(function(record) {
+                drawMemUsage(record, maxMem);
+            })
+        })
 
     });
 
