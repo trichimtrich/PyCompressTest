@@ -1,5 +1,6 @@
 Cython
 psutil
+cpuinfo
 
 brotli
 

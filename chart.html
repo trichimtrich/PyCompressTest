@@ -2,9 +2,16 @@
 <script src="https://code.highcharts.com/highcharts.js"></script>
 
 
-<div id="ratio-compression-chart"></div><hr>
-<div id="ratio-decompression-chart"></div><hr>
-<div id="compression-decompression-chart"></div><hr>
+<div id="device-metadata">
+
+</div>
+
+<div id="ratio-compression-chart"></div>
+<hr>
+<div id="ratio-decompression-chart"></div>
+<hr>
+<div id="compression-decompression-chart"></div>
+<hr>
 
 <div id="mem-usage-container">
 
@@ -14,9 +21,9 @@
     document.addEventListener("DOMContentLoaded", function () {
 
         function topFunction() {
-  document.body.scrollTop = 0; // For Safari
-  document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
-}
+            document.body.scrollTop = 0; // For Safari
+            document.documentElement.scrollTop = 0; // For Chrome, Firefox, IE and Opera
+        }
 
         function decimalAdjust(type, value, exp) {
             if (typeof exp === "undefined" || +exp === 0) {
@@ -79,7 +86,7 @@
             Highcharts.chart("ratio-compression-chart", {
                 chart: { type: "scatter" },
                 title: { text: "Ratio - Compression Speed" },
-                subtitle: { text: "Click point to jump to memory usage of codec"},
+                subtitle: { text: "Click point to jump to memory usage of codec" },
                 xAxis: {
                     title: {
                         enabled: true,
@@ -121,7 +128,7 @@
                         },
                         point: {
                             events: {
-                                click: function() {
+                                click: function () {
                                     location.hash = `#${this.codec}-chart`;
                                 }
                             }
@@ -152,7 +159,7 @@
             Highcharts.chart("ratio-decompression-chart", {
                 chart: { type: "scatter" },
                 title: { text: "Ratio - Decompression Speed" },
-                subtitle: { text: "Click point to jump to memory usage of codec"},
+                subtitle: { text: "Click point to jump to memory usage of codec" },
                 xAxis: {
                     title: {
                         enabled: true,
@@ -194,7 +201,7 @@
                         },
                         point: {
                             events: {
-                                click: function() {
+                                click: function () {
                                     location.hash = `#${this.codec}-chart`;
                                 }
                             }
@@ -224,7 +231,7 @@
             Highcharts.chart("compression-decompression-chart", {
                 chart: { type: "scatter" },
                 title: { text: "Compression Speed - Decompression Speed" },
-                subtitle: { text: "Click point to jump to memory usage of codec"},
+                subtitle: { text: "Click point to jump to memory usage of codec" },
                 xAxis: {
                     title: {
                         enabled: true,
@@ -271,7 +278,7 @@
                         },
                         point: {
                             events: {
-                                click: function() {
+                                click: function () {
                                     location.hash = `#${this.codec}-chart`;
                                 }
                             }
@@ -427,6 +434,9 @@
             });
         }
 
+        deviceData = JSON.parse(`replace_this_device`);
+        document.getElementById("device-metadata").innerHTML = deviceData;
+
         maxMem = JSON.parse(`replace_this_max`);
         chartKeys = JSON.parse(`replace_this_keys`);
         chartData = JSON.parse(`replace_this_data`);
@@ -435,8 +445,8 @@
         drawCompressionDecompressionChart(chartData, chartKeys);
 
         // record = chartData["brotli"][0];
-        chartKeys.forEach(function(key) {
-            chartData[key].forEach(function(record) {
+        chartKeys.forEach(function (key) {
+            chartData[key].forEach(function (record) {
                 drawMemUsage(record, maxMem);
             })
         })

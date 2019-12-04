@@ -11,6 +11,7 @@ import logging
 
 import subprocess
 import psutil
+import cpuinfo
 
 import methods
 
@@ -218,7 +219,13 @@ def main():
  
     test_methods = methods.generate()
 
-    results = {}
+    # metadata of device
+    results = {
+        "?": {
+            "cpuinfo": cpuinfo.get_cpu_info(),
+            "memory": psutil.virtual_memory().total,
+        }
+    }
     for name, method in test_methods.items():
         logging.info("[+] " + name)
         test_result = run_test(method, path)
@@ -231,7 +238,7 @@ def main():
 
             logging.info(">>> SUM: ratio {:6.3f}% , compress speed {:7.3f} MB/s , decompress speed {:7.3f} MB/s".format(ratio, c_speed / (1024 ** 2), dc_speed / (1024 ** 2)))
         else:
-            logging.error("Unknown")
+            logging.error("Unknown Error! Maybe out of memory")
 
     json_path = sys.argv[2]
     with open(json_path, "w") as f:

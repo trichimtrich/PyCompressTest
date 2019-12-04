@@ -16,6 +16,10 @@ def main():
     keys = []
     max_mem = 0
     for codec, test_result in d.items():
+        # if not device metadata
+        if codec == "?":
+            continue
+
         if re.match("^.+?-\d+", codec):
             # quality / level
             idx = codec.rfind("-")
@@ -114,6 +118,7 @@ def main():
     x = x.replace("replace_this_data", json.dumps(new_data))
     x = x.replace("replace_this_keys", json.dumps(keys))
     x = x.replace("replace_this_max", json.dumps(max_mem))
+    x = x.replace("replace_this_device", json.dumps(d["?"]))
 
     open(sys.argv[2], "w").write(x)
 
