@@ -1,6 +1,5 @@
 #!/usr/bin/python3
 
-
 import os
 import sys
 import time
@@ -21,6 +20,7 @@ import sys
 import time
 import timeit
 import json
+import gc
 
 %(preload)s
 
@@ -84,6 +84,7 @@ def run_test(data_array):
         # clean up memory for measuring
         del dc_data
         del c_data
+        gc.collect()
 
         results[fn] = {
             "size": len(data),
@@ -116,7 +117,7 @@ def main():
     data_array = read_folder_or_file(path)
 
     # delay a bit to measure the memory usage when loading data
-    time.sleep(1)
+    time.sleep(0.5)
 
     start_test = time.time()
     results = run_test(data_array)
@@ -127,14 +128,18 @@ def main():
         "end_test": end_test,
     })
 
-    # delay a bit before return data
-    time.sleep(1)
-
     print(json.dumps(results))
+
+    # clean up memory
+    del data_array
+    del results
+    gc.collect()
+
     return 0
 
 if __name__ == "__main__":
     main()
+    time.sleep(0.5)
 """
 
 
@@ -176,7 +181,10 @@ def run_test(method, path):
     # https://github.com/pythonprofilers/memory_profiler/blob/1a853e5b1342788fdd6ab55cfe6c568e3b307349/memory_profiler.py#L367
     while True:
         # https://github.com/pythonprofilers/memory_profiler/blob/1a853e5b1342788fdd6ab55cfe6c568e3b307349/memory_profiler.py#L133
-        mem = p.memory_info()[0] / _TWO_20
+        try:
+            mem = p.memory_info()[1] / _TWO_20
+        except:
+            mem = 0
         mem_usage.append(mem)
         time.sleep(interval)
         if proc.poll() is not None:
@@ -227,6 +235,7 @@ def main():
         }
     }
     for name, method in test_methods.items():
+        if name == "brotli-2": break
         logging.info("[+] " + name)
         test_result = run_test(method, path)
         results[name] = test_result

@@ -1,11 +1,8 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.6/d3.js"></script>
 <script src="https://code.highcharts.com/highcharts.js"></script>
 
-
-<div id="device-metadata">
-
-</div>
-
+<div id="device-metadata"></div>
+<hr>
 <div id="ratio-compression-chart"></div>
 <hr>
 <div id="ratio-decompression-chart"></div>
@@ -435,7 +432,37 @@
         }
 
         deviceData = JSON.parse(`replace_this_device`);
-        document.getElementById("device-metadata").innerHTML = deviceData;
+
+        div = document.getElementById("device-metadata");
+
+        ss = "";
+        ss += `
+            <table>
+                <tr>
+                    <td>
+                        <b>RAM</b>
+                    </td>
+                <td style="word-break:break-all">
+                    ${formatSize(deviceData["memory"])}
+                </td>
+            </tr>`;
+        ss += "<tr><td><b>CPU</b></td></tr>";
+        for (var prop in deviceData["cpuinfo"]) {
+            if (prop) {
+
+                ss += `
+                <tr>
+                    <td>
+                        ${prop}
+                    </td>
+                <td style="word-break:break-all">
+                    ${deviceData["cpuinfo"][prop]}
+                </td>
+            </tr>`;
+            }
+        }
+        ss += "</table>";
+        div.innerHTML = ss;
 
         maxMem = JSON.parse(`replace_this_max`);
         chartKeys = JSON.parse(`replace_this_keys`);
