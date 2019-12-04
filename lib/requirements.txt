@@ -1,6 +1,6 @@
 Cython
 psutil
-cpuinfo
+py-cpuinfo
 
 brotli
 
