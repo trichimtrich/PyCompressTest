@@ -52,6 +52,9 @@ Simple script to test performance of some leading compressed algorithms implemen
 - No threading involved
 - No dictionary involed
 - Some wrapper libraries don't provide level/quality selection
+- Time measuring is the most precise timer in Python, use `timeit.default_timer`. Can get rid of several opcode circles (in between assign operator and calling function) by using C implementation, but no need if test data is big enough
+- Memory measuring is not precise (0.1s interval), because using `psutil` method. Can use `tracemalloc` for native measuring but will affect clock timing
+- Charts are directly cloned from [squash-benchmark-result](https://quixdb.github.io/squash-benchmark/#ratio-vs-decompression)
 
 ## Usage
 
@@ -64,8 +67,15 @@ python main.py test.dat result1.json
 python main.py test_directory/ result2.json
 ```
 
+- Visualization
+
+```bash
+python chart.py result1.json result1.html
+python chart.py result2.json result2.html
+```
+
 ## Disclaimer
 
 - Not a bold comparision between algorithms. Only check on Python wrapper level and your specific data
-- The results are not consistent between small and large test data
+- The results are not consistent between small and large test data. Better use data that needs at least 2s of computing for each codec
 - No optimization and enhancement have made
