@@ -235,7 +235,6 @@ def main():
         }
     }
     for name, method in test_methods.items():
-        if name == "brotli-2": break
         logging.info("[+] " + name)
         test_result = run_test(method, path)
         results[name] = test_result
