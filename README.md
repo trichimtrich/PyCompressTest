@@ -46,7 +46,7 @@ Simple script to test performance of some leading compressed algorithms implemen
 
 ## Notes
 
-- Check only for single file compression
+- Check only for single file/directory compression
 - Check only for frame, not stream mode
 - Haven't checked if algorithms/libs support stream mode
 - No threading involved
