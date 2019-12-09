@@ -74,6 +74,10 @@ python chart.py result1.json result1.html
 python chart.py result2.json result2.html
 ```
 
+## Results
+
+Check in [my blog post](https://blog.trich.im/project/2019/benchmark-compression-in-python/).
+
 ## Disclaimer
 
 - Not a bold comparision between algorithms. Only check on Python wrapper level and your specific data
